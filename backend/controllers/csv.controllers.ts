@@ -5,6 +5,8 @@ import path from "path";
 import { ApiError } from "../utilis/apierror.ts";
 import { ApiResponse } from "../utilis/apiresponse.ts";
 import { asyncHandler } from "../utilis/asynchandler.ts";
+import {parseCSV,jsonToCSV} from "../utilis/csvParser.ts";
+import {callGemini}  from "../service/gemini";
 
 const uploadCSV = asyncHandler(async (req: Request, res: Response) => {
   if (!req.file) {
@@ -33,6 +35,7 @@ const uploadCSV = asyncHandler(async (req: Request, res: Response) => {
     )
   );
 });
+
 const csvtoCMRConversion = asyncHandler(
   async (req: Request, res: Response) => {
     const { fileName } = req.body;
@@ -92,7 +95,7 @@ Return ONLY valid JSON.
 
         try {
 
-          const response = await callGemini(prompt); // <-- your Gemini function
+          const response = await callGemini(prompt); // our Gemini function
 
           let text = response.trim();
 
@@ -169,33 +172,35 @@ Return ONLY valid JSON.
       }
     }
 
-    // Save only CRM JSON
+
     const outputDir = path.join(process.cwd(), "database", "crm");
 
     if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir, { recursive: true });
-    }
+	  fs.mkdirSync(outputDir, { recursive: true });
+	}
 
-    const outputFile = path.join(outputDir, "crm.json");
+     const jsonOutputPath = path.join(outputDir, "crm.json");
 
-    fs.writeFileSync(
-      outputFile,
-      JSON.stringify(allCRMRecords, null, 2),
-      "utf8"
-    );
+     fs.writeFileSync(
+	  jsonOutputPath,
+	  JSON.stringify(allCRMRecords, null, 2),
+	  "utf8"
+	);
 
+    const csvOutputPath = path.join(outputDir, "crm.csv");
+
+    await jsonToCSV(allCRMRecords, csvOutputPath);
     return res.status(200).json(
-      new ApiResponse(
-        200,
-        {
-          totalInputRecords: records.length,
-          totalCRMRecords: allCRMRecords.length,
-          outputFile,
-        },
-        "CRM extraction completed successfully"
-      )
-    );
-  }
-);
-
-export { uploadCSV };
+	  new ApiResponse(
+	    200,
+	    {
+	      totalInputRecords: records.length,
+	      totalCRMRecords: allCRMRecords.length,
+	      jsonFile: jsonOutputPath,
+	      csvFile: csvOutputPath,
+	    },
+	    "CRM extraction completed successfully"
+	  )
+	);
+	});
+export { uploadCSV,csvtoCMRConversion };
