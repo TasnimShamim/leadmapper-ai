@@ -33,4 +33,6 @@ app.get("/", (_, res) => {
   });
 });
 
+import csvRouter from "./routes/csv.routes.ts"
+app.use("/",csvRouter)
 export default app;

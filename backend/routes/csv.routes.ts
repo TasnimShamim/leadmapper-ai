@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { uploadCSV } from "../controllers/csv.controller";
-import { upload } from "../middleware/multer.middleware";
+import { uploadCSV } from "../controllers/csv.controllers.ts";
+import { upload } from "../middleware/multer.middleware.ts";
 
 const csvRouter = Router();
 
