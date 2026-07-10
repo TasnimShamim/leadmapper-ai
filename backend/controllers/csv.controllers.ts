@@ -7,6 +7,7 @@ import { ApiResponse } from "../utilis/apiresponse.ts";
 import { asyncHandler } from "../utilis/asynchandler.ts";
 import {parseCSV,jsonToCSV} from "../utilis/csvParser.ts";
 import {callGemini}  from "../service/gemini";
+import {CRM_SYSTEM_PROMPTS} from "../prompts/gemini.prompts"
 
 const uploadCSV = asyncHandler(async (req: Request, res: Response) => {
   if (!req.file) {
@@ -38,11 +39,11 @@ const uploadCSV = asyncHandler(async (req: Request, res: Response) => {
 
 const csvtoCMRConversion = asyncHandler(
   async (req: Request, res: Response) => {
-    const { fileName } = req.body;
-
+    const fileName = req.file?.filename;
     if (!fileName) {
-      throw new ApiError(400, "File name is required");
-    }
+    	throw new ApiError(400, "File name is required");
+     }
+     console.log(fileName);
 
     const filePath = path.join(
       process.cwd(),
@@ -50,8 +51,9 @@ const csvtoCMRConversion = asyncHandler(
       "uploads",
       fileName
     );
-
+	console.log("File PAth : ",filePath);
     const records = await parseCSV(filePath);
+    
 
     if (records.length === 0) {
       throw new ApiError(400, "CSV contains no records");
@@ -76,9 +78,8 @@ const csvtoCMRConversion = asyncHandler(
       console.log(
         `Processing Batch ${batchNumber + 1}/${batches.length}`
       );
-
       const prompt = `
-${CRM_SYSTEM_PROMPT}
+${CRM_SYSTEM_PROMPTS}
 
 Records:
 

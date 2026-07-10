@@ -7,7 +7,8 @@ export const parseCSV = async (
 ): Promise<Record<string, any>[]> => {
   return new Promise((resolve, reject) => {
     const records: Record<string, any>[] = [];
-
+    console.log("File path in csvParser:", filePath);
+    console.log("Exists:", fs.existsSync(filePath));
     fs.createReadStream(filePath)
       .pipe(csv())
       .on("data", (row) => {
