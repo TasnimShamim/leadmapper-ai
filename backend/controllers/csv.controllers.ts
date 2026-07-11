@@ -39,7 +39,7 @@ const uploadCSV = asyncHandler(async (req: Request, res: Response) => {
 
 const csvtoCMRConversion = asyncHandler(
   async (req: Request, res: Response) => {
-    const fileName = req.file?.filename;
+    const { fileName } = req.body;
     if (!fileName) {
     	throw new ApiError(400, "File name is required");
      }
@@ -180,15 +180,21 @@ Return ONLY valid JSON.
 	  fs.mkdirSync(outputDir, { recursive: true });
 	}
 
-     const jsonOutputPath = path.join(outputDir, "crm.json");
+     const baseName = path.parse(fileName).name;
+     const jsonOutputPath = path.join(
+	outputDir,
+	`${baseName}_crm.json`
+	);
 
      fs.writeFileSync(
 	  jsonOutputPath,
 	  JSON.stringify(allCRMRecords, null, 2),
 	  "utf8"
 	);
-
-    const csvOutputPath = path.join(outputDir, "crm.csv");
+	const csvOutputPath = path.join(
+	    outputDir, 
+	    `${baseName}_crm.csv`
+	);
 
     await jsonToCSV(allCRMRecords, csvOutputPath);
     return res.status(200).json(
@@ -204,4 +210,119 @@ Return ONLY valid JSON.
 	  )
 	);
 	});
-export { uploadCSV,csvtoCMRConversion };
+const getUploadedCSVFiles = asyncHandler(
+  async (req: Request, res: Response) => {
+    const uploadDir = path.join(process.cwd(), "database", "uploads");
+
+    if (!fs.existsSync(uploadDir)) {
+      return res
+        .status(200)
+        .json(new ApiResponse(200, [], "No uploaded CSV files found"));
+    }
+
+    const files = fs
+      .readdirSync(uploadDir)
+      .filter((file) => file.toLowerCase().endsWith(".csv"));
+
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        files,
+        "Uploaded CSV files fetched successfully"
+      )
+    );
+  }
+);
+
+const previewUploadedCSV = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { fileName } = req.params;
+
+    if (!fileName) {
+      throw new ApiError(400, "File name is required");
+    }
+
+    const filePath = path.join(
+      process.cwd(),
+      "database",
+      "uploads",
+      fileName
+    );
+
+    if (!fs.existsSync(filePath)) {
+      throw new ApiError(404, "CSV file not found");
+    }
+
+    const records = await parseCSV(filePath);
+
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        records,
+        "CSV preview fetched successfully"
+      )
+    );
+  }
+);
+
+const getCRMFiles = asyncHandler(
+  async (req: Request, res: Response) => {
+    const crmDir = path.join(process.cwd(), "database", "crm");
+
+    if (!fs.existsSync(crmDir)) {
+      return res
+        .status(200)
+        .json(new ApiResponse(200, [], "No CRM files found"));
+    }
+
+    const files = fs
+      .readdirSync(crmDir)
+      .filter((file) => file.toLowerCase().endsWith(".csv"));
+
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        files,
+        "CRM files fetched successfully"
+      )
+    );
+  }
+);
+
+const previewCRMCSV = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { fileName } = req.params;
+
+    if (!fileName) {
+      throw new ApiError(400, "File name is required");
+    }
+
+    const filePath = path.join(
+      process.cwd(),
+      "database",
+      "crm",
+      fileName
+    );
+
+    if (!fs.existsSync(filePath)) {
+      throw new ApiError(404, "CRM CSV not found");
+    }
+
+    const records = await parseCSV(filePath);
+
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        records,
+        "CRM CSV preview fetched successfully"
+      )
+    );
+  });
+export {
+  uploadCSV,
+  csvtoCMRConversion,
+  getUploadedCSVFiles,
+  previewUploadedCSV,
+  getCRMFiles,
+  previewCRMCSV,
+};

@@ -3,7 +3,7 @@
 import Papa from "papaparse";
 import { useState } from "react";
 import { X, UploadCloud } from "lucide-react";
-import { uploadCSV } from "../../lib/api"; // Update the path if needed
+import { uploadCSV } from "../../lib/api"; 
 
 interface UploadModalProps {
   onClose: () => void;
@@ -42,16 +42,7 @@ export default function UploadModal({
 
       console.log("Upload Successful:", response);
 
-      /**
-       * If your backend returns parsed records:
-       * setLeads(response.records);
-       *
-       * If your backend only saves the file and returns
-       * { success, fileName }, then you don't need setLeads here.
-       * You'll call your parse endpoint later.
-       */
-
-      onClose();
+      onUploadSuccess();
     } catch (error) {
       console.error(error);
       alert("Failed to upload file.");
@@ -193,3 +184,4 @@ export default function UploadModal({
     </div>
   );
 }
+
