@@ -1,5 +1,12 @@
 import { Router } from "express";
-import { uploadCSV,csvtoCMRConversion } from "../controllers/csv.controllers.ts";
+import {
+  uploadCSV,
+  csvtoCMRConversion,
+  getUploadedCSVFiles,
+  previewUploadedCSV,
+  getCRMFiles,
+  previewCRMCSV,
+} from "../controllers/csv.controllers";
 import { upload } from "../middleware/multer.middleware.ts";
 
 const csvRouter = Router();
@@ -11,9 +18,15 @@ csvRouter.post(
 );
 csvRouter.post(
   "/parse",
-  upload.single("csv"),
   csvtoCMRConversion
   );
+csvRouter.get("/uploads", getUploadedCSVFiles);
+
+csvRouter.get("/uploads/:fileName", previewUploadedCSV);
+
+csvRouter.get("/crm", getCRMFiles);
+
+csvRouter.get("/crm/:fileName", previewCRMCSV);
   
 
 export default csvRouter;
