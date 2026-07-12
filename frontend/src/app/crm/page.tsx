@@ -27,6 +27,10 @@ export default function CRMPage() {
 
   const [rows, setRows] = useState<any[]>([]);
 
+  // Added states
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [mappedRecords, setMappedRecords] = useState(0);
+
   const loadCRMFiles = async () => {
     try {
       const response = await getCRMFiles();
@@ -48,10 +52,12 @@ export default function CRMPage() {
     try {
       setSelectedFile(fileName);
 
-      const response =
-        await previewCRMFile(fileName);
+      const response = await previewCRMFile(fileName);
 
-      setRows(response.data);
+      // Updated according to new backend response
+      setRows(response.data.records);
+      setTotalRecords(response.data.totalRecords);
+      setMappedRecords(response.data.mappedRecords);
     } catch (error) {
       console.error(error);
     }
@@ -60,7 +66,8 @@ export default function CRMPage() {
   useEffect(() => {
     loadCRMFiles();
   }, []);
-    return (
+
+  return (
     <main className="min-h-screen bg-[#020617] text-white flex">
       <Sidebar />
 
@@ -97,19 +104,19 @@ export default function CRMPage() {
 
           <StatCard
             title="Total Records"
-            value={rows.length}
+            value={totalRecords}
             icon={<FileText />}
           />
 
           <StatCard
             title="Mapped Records"
-            value={rows.length}
+            value={mappedRecords}
             icon={<CheckCircle />}
           />
 
           <StatCard
             title="Skipped Records"
-            value="0"
+            value={totalRecords - mappedRecords}
             icon={<AlertCircle />}
           />
 
@@ -144,11 +151,9 @@ export default function CRMPage() {
               </h2>
 
               <p className="mt-2 text-sm text-slate-400">
-
                 {selectedFile
                   ? selectedFile
                   : "No CRM file selected"}
-
               </p>
 
             </div>
@@ -158,9 +163,9 @@ export default function CRMPage() {
           </div>
 
         </div>
-        
+
       </section>
 
     </main>
   );
-  }
+}

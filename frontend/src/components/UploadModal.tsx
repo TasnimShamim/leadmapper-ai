@@ -9,12 +9,14 @@ interface UploadModalProps {
   onClose: () => void;
   setLeads: React.Dispatch<React.SetStateAction<any[]>>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+   onUploadSuccess: () => void;
 }
 
 export default function UploadModal({
   onClose,
   setLeads,
   setLoading,
+  onUploadSuccess,
 }: UploadModalProps) {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<any[]>([]);
@@ -43,6 +45,7 @@ export default function UploadModal({
       console.log("Upload Successful:", response);
 
       onUploadSuccess();
+      onClose();
     } catch (error) {
       console.error(error);
       alert("Failed to upload file.");

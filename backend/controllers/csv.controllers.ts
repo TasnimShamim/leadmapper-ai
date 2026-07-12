@@ -288,7 +288,6 @@ const getCRMFiles = asyncHandler(
     );
   }
 );
-
 const previewCRMCSV = asyncHandler(
   async (req: Request, res: Response) => {
     const { fileName } = req.params;
@@ -308,17 +307,42 @@ const previewCRMCSV = asyncHandler(
       throw new ApiError(404, "CRM CSV not found");
     }
 
+    // Existing logic (unchanged)
     const records = await parseCSV(filePath);
 
+    // -----------------------------
+    // NEW CODE
+    // -----------------------------
+    const originalFileName = fileName.replace("_crm.csv", ".csv");
+
+    const originalFilePath = path.join(
+      process.cwd(),
+      "database",
+      "uploads",
+      originalFileName
+    );
+
+    let totalRecords = 0;
+
+    if (fs.existsSync(originalFilePath)) {
+      const originalRecords = await parseCSV(originalFilePath);
+      totalRecords = originalRecords.length;
+    }
+
+    // Existing response with extra fields
     return res.status(200).json(
       new ApiResponse(
         200,
-        records,
+        {
+          records,
+          totalRecords,
+          mappedRecords: records.length,
+        },
         "CRM CSV preview fetched successfully"
       )
     );
-  });
-export {
+  }
+);export {
   uploadCSV,
   csvtoCMRConversion,
   getUploadedCSVFiles,
